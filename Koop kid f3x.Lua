@@ -1,6 +1,6 @@
 -- ============================================
---  Koop kid btools gui - با ۳ دکمه مجزا
---  سیستم: SyncAPI + Fire All + Decal + Sky
+--  Koop kid btools gui - با ۴ دکمه
+--  سیستم: SyncAPI + Fire All + Decal + Sky + Kill All
 -- ============================================
 
 local Players = game:GetService("Players")
@@ -17,8 +17,8 @@ screenGui.ResetOnSpawn = false
 screenGui.Parent = playerGui
 
 local frame = Instance.new("Frame")
-frame.Size = UDim2.new(0, 280, 0, 200)
-frame.Position = UDim2.new(0.5, -140, 0.5, -100)
+frame.Size = UDim2.new(0, 280, 0, 250)
+frame.Position = UDim2.new(0.5, -140, 0.5, -125)
 frame.BackgroundColor3 = Color3.fromRGB(20, 20, 28)
 frame.BorderSizePixel = 0
 frame.ClipsDescendants = true
@@ -50,7 +50,7 @@ local title = Instance.new("TextLabel")
 title.Size = UDim2.new(1, -40, 1, 0)
 title.Position = UDim2.new(0, 8, 0, 0)
 title.BackgroundTransparency = 1
-title.Text = "🔥 Koop kid btools gui"
+title.Text = "Koop kid btools gui"
 title.TextColor3 = Color3.fromRGB(255, 200, 100)
 title.TextSize = 16
 title.Font = Enum.Font.GothamBold
@@ -61,7 +61,7 @@ local closeBtn = Instance.new("TextButton")
 closeBtn.Size = UDim2.new(0, 24, 0, 24)
 closeBtn.Position = UDim2.new(1, -30, 0.5, -12)
 closeBtn.BackgroundColor3 = Color3.fromRGB(200, 0, 0)
-closeBtn.Text = "✕"
+closeBtn.Text = "X"
 closeBtn.TextColor3 = Color3.new(1, 1, 1)
 closeBtn.TextSize = 14
 closeBtn.Font = Enum.Font.GothamBold
@@ -131,7 +131,7 @@ local function createButton(text, yPos, color)
 end
 
 -- ============================================
--- توابع SyncAPI (از فایل اصلی)
+-- توابع SyncAPI
 -- ============================================
 local function getSyncAPI()
     local tool
@@ -148,7 +148,7 @@ local function getSyncAPI()
     return tool
 end
 
-local function invokeRemote(args)
+local function _(args)
     local tool = getSyncAPI()
     if not tool then return end
     local remote = tool.SyncAPI.ServerEndpoint
@@ -156,11 +156,11 @@ local function invokeRemote(args)
 end
 
 local function SetLocked(part, boolean)
-    invokeRemote({ [1] = "SetLocked", [2] = { [1] = part }, [3] = boolean })
+    _({ [1] = "SetLocked", [2] = { [1] = part }, [3] = boolean })
 end
 
 local function AddFire(part)
-    invokeRemote({
+    _({
         [1] = "CreateDecorations",
         [2] = {
             [1] = {
@@ -172,7 +172,7 @@ local function AddFire(part)
 end
 
 local function SpawnDecal(part, side)
-    invokeRemote({
+    _({
         [1] = "CreateTextures",
         [2] = {
             [1] = {
@@ -185,7 +185,7 @@ local function SpawnDecal(part, side)
 end
 
 local function AddDecal(part, asset, side)
-    invokeRemote({
+    _({
         [1] = "SyncTexture",
         [2] = {
             [1] = {
@@ -199,7 +199,7 @@ local function AddDecal(part, asset, side)
 end
 
 local function SetMesh(part, meshid)
-    invokeRemote({
+    _({
         [1] = "SyncMesh",
         [2] = {
             [1] = {
@@ -211,7 +211,7 @@ local function SetMesh(part, meshid)
 end
 
 local function SetTexture(part, texid)
-    invokeRemote({
+    _({
         [1] = "SyncMesh",
         [2] = {
             [1] = {
@@ -223,11 +223,11 @@ local function SetTexture(part, texid)
 end
 
 local function SetName(part, stringg)
-    invokeRemote({ [1] = "SetName", [2] = { [1] = part }, [3] = stringg })
+    _({ [1] = "SetName", [2] = { [1] = part }, [3] = stringg })
 end
 
 local function AddMesh(part)
-    invokeRemote({
+    _({
         [1] = "CreateMeshes",
         [2] = {
             [1] = {
@@ -238,7 +238,7 @@ local function AddMesh(part)
 end
 
 local function MeshResize(part, size)
-    invokeRemote({
+    _({
         [1] = "SyncMesh",
         [2] = {
             [1] = {
@@ -250,7 +250,27 @@ local function MeshResize(part, size)
 end
 
 local function CreatePart(cf, parent)
-    invokeRemote({ [1] = "CreatePart", [2] = "Normal", [3] = cf, [4] = parent })
+    _({ [1] = "CreatePart", [2] = "Normal", [3] = cf, [4] = parent })
+end
+
+-- ============================================
+-- تابع حذف قطعه
+-- ============================================
+function DestroyPart(part)
+    _({ [1] = "Remove", [2] = { [1] = part } })
+end
+
+-- ============================================
+-- تابع Kill All
+-- ============================================
+local function KillAll()
+    for _, v in game.Players:GetPlayers() do
+        pcall(function()
+            if v.Character and v.Character:FindFirstChild("Head") then
+                DestroyPart(v.Character.Head)
+            end
+        end)
+    end
 end
 
 -- ============================================
@@ -286,7 +306,7 @@ end
 local function Decal(id)
     for _, v in pairs(workspace:GetDescendants()) do
         if v:IsA("BasePart") then
-            task.spawn(function()
+            spawn(function()
                 SetLocked(v, false)
                 local sides = {
                     Enum.NormalId.Front,
@@ -311,7 +331,7 @@ end
 local function FireAll()
     for _, v in pairs(workspace:GetDescendants()) do
         if v:IsA("BasePart") then
-            task.spawn(function()
+            spawn(function()
                 SetLocked(v, false)
                 AddFire(v)
             end)
@@ -322,17 +342,20 @@ end
 -- ============================================
 -- دکمه‌ها
 -- ============================================
-local fireBtn = createButton("🔥 Fire All", 0.15, Color3.fromRGB(200, 50, 0))
+local fireBtn = createButton("Fire All", 0.12, Color3.fromRGB(200, 50, 0))
 fireBtn.MouseButton1Click:Connect(FireAll)
 
-local decalBtn = createButton("🖼️ Decal", 0.43, Color3.fromRGB(0, 100, 200))
+local decalBtn = createButton("Decal", 0.32, Color3.fromRGB(0, 100, 200))
 decalBtn.MouseButton1Click:Connect(function()
     Decal("16438486359")
 end)
 
-local skyBtn = createButton("🌤️ Sky", 0.71, Color3.fromRGB(0, 150, 100))
+local skyBtn = createButton("Sky", 0.52, Color3.fromRGB(0, 150, 100))
 skyBtn.MouseButton1Click:Connect(function()
     Sky("16547689152")
 end)
 
-print("✅ Koop kid btools gui Loaded!")
+local killBtn = createButton("Kill All", 0.72, Color3.fromRGB(180, 0, 0))
+killBtn.MouseButton1Click:Connect(KillAll)
+
+print("Koop kid btools gui Loaded!")
